@@ -15,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.*;
 import java.util.stream.Collectors;
 @RestController
@@ -36,7 +37,7 @@ public class AuthController {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-        //  an den yparxei Authentication, epestrepse 401
+        // If no auth found, return 401 Unauthorized
 
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication auth) {
@@ -44,10 +45,10 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "No auth"));
         }
-        // vrese user me to username pou ebale o JwtFilter sto SecurityContext
+        // Find user by username that JwtFilter set in SecurityContext
         User u = userRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new BadCredentialsException("User not found"));
-        //  pare roles apo authorities (minimo ROLE_USER an adeio)
+        // Extract roles from authorities (default to ROLE_USER if empty)
 
         List<String> roles = auth.getAuthorities() == null
                 ? List.of("ROLE_USER")
@@ -63,7 +64,7 @@ public class AuthController {
                 "roles", roles
         ));
     }
-        //  aplh login me AuthenticationManager -> JWT + roles
+        // Simple login using AuthenticationManager -> JWT + roles
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String,String> body) {
@@ -77,7 +78,7 @@ public class AuthController {
                     .map(GrantedAuthority::getAuthority)
                     .toList();
 
-            // ΠΑΝΤΑ δώσε ΚΑΙ accessToken ΚΑΙ token
+            // Always return both accessToken and token fields
             return ResponseEntity.ok(Map.of(
                     "accessToken", jwt,
                     "token", jwt,
@@ -99,7 +100,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("error","Username already exists"));
         }
-                //dhmiourgia user me hashed password
+                // Create user with hashed password
 
         User u = new User();
         u.setUsername(req.getUsername());
@@ -107,7 +108,7 @@ public class AuthController {
         u.setPassword(passwordEncoder.encode(req.getPassword()));
         userRepository.save(u);
 
-        // default UI role
+        // Default UI role if not specified
         String role = (req.getRole()!=null && !req.getRole().isBlank())
                 ? req.getRole().toUpperCase().replaceFirst("^ROLE_", "")
                 : "USER";
@@ -116,7 +117,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new AuthResponse(token, new String[]{"ROLE_"+role}));
     }
-    // ---------- DTOs (χωρίς Lombok) ----------
+    // ---------- DTOs (without Lombok) ----------
     public static class LoginRequest {
         private String username;
         private String password;
@@ -148,7 +149,7 @@ public class AuthController {
 
     public static class AuthResponse {
         private String accessToken;
-        private String token; // ίδιο με accessToken
+        private String token; // Same as accessToken
         private String[] roles;
 
         public AuthResponse() {}
@@ -165,7 +166,7 @@ public class AuthController {
         public void setRoles(String[] roles) { this.roles = roles; }
     }
 
-    // ---------- helpers ----------
+    // ---------- Helper methods ----------
     private static String asString(Object o) {
         if (o == null) return null;
         String s = String.valueOf(o).trim();

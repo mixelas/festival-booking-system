@@ -43,7 +43,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
       .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .authorizeHttpRequests(auth -> auth
-          // PUBLIC perioxes
+          // Public endpoints
           .requestMatchers(toH2Console()).permitAll()
           .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
           .requestMatchers("/", "/index.html",
@@ -53,12 +53,12 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
           .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
           .requestMatchers(HttpMethod.GET,  "/api/festivals/**").permitAll()
 
-//  public auth,performances,festivals endpoints      
-    .requestMatchers("/api/auth/me").authenticated()
+          // Protected endpoints requiring authentication
+          .requestMatchers("/api/auth/me").authenticated()
           .requestMatchers(HttpMethod.POST, "/api/performances/**").authenticated()
           .requestMatchers(HttpMethod.POST, "/api/festivals/*/performances").authenticated()
 
-          // Ο,τι άλλο θες δημόσιο, άφησέ το ρητά· αλλιώς άστο authenticated
+          // Allow all other requests; be explicit about security requirements
           .anyRequest().permitAll()
       );
 
@@ -74,8 +74,8 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-  return new BCryptPasswordEncoder();
-
+        return new BCryptPasswordEncoder();
+    }
 
 }
 

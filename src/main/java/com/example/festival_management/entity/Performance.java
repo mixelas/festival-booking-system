@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.example.festival_management.entity.enums.PerformanceStatus;
-//KLASH ME TA PEDIA THS PARASTASHS
+// Entity mapping for Performance table with all fields
 @Entity
 @Table(name = "performances",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "festival_id"})})
@@ -32,13 +32,14 @@ public class Performance {
     @Column(nullable = false)
     private PerformanceStatus status;
 
+    // Duration stored as seconds in database via custom converter
     @Convert(converter = com.example.festival_management.util.DurationToLongConverter.class)
-@Column(nullable = false)
-private Duration duration;
-
+    @Column(nullable = false)
+    private Duration duration;
 
 
     
+    // Collections for performance requirements
     @ElementCollection
     @CollectionTable(name = "performance_technical_requirements", joinColumns = @JoinColumn(name = "performance_id"))
     @Column(name = "requirement")

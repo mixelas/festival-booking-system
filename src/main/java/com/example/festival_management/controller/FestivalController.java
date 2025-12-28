@@ -5,6 +5,8 @@ import com.example.festival_management.entity.Festival;
 import com.example.festival_management.repository.FestivalRepository;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -27,24 +29,24 @@ public class FestivalController {
     public FestivalController(FestivalRepository repo) {
         this.repo = repo;
     }
-    // request opws to STELEI o client (enum sto field state)
+    // Request as sent by client (enum in state field)
   public static record CreateFestivalRequest(
-    String name,
-    String venue,
-    LocalDate startDate,
-    LocalDate endDate,
-    FestivalState state,         // <- το entity enum εδώ
+    @NotBlank(message = "Festival name is required") String name,
+    @NotBlank(message = "Venue is required") String venue,
+    @NotNull(message = "Start date is required") LocalDate startDate,
+    @NotNull(message = "End date is required") LocalDate endDate,
+    FestivalState state,
     String description
 ) {}
-    //an erthei state os STRING (optional helper gia symmetry)
-    // overload otan to request dinei HDH enum
+    // Helper to handle state as String (for symmetry)
+    // Converts to enum value if provided
 
 public FestivalState toStateOrDefault(String s){
   if (s == null || s.isBlank()) return FestivalState.SCHEDULING;
   try { return FestivalState.valueOf(s.trim().toUpperCase()); }
   catch (IllegalArgumentException ex){ return FestivalState.SCHEDULING; }
 }
-  // Μπορείς να γυρίσεις και DTO – εδώ γυρνάω το entity για συντομία
+  // Could return DTO, but returning entity for simplicity
  @PostMapping
   public ResponseEntity<Festival> create(@Valid @RequestBody CreateFestivalRequest req) {
     if (req.name() == null || req.name().isBlank() ||
@@ -55,19 +57,18 @@ public FestivalState toStateOrDefault(String s){
     }
 
     Festival f = new Festival();
-FestivalState f1;
     f.setName(req.name());
     f.setVenue(req.venue());
     f.setStartDate(req.startDate());
     f.setEndDate(req.endDate());
     f.setDescription(req.description());
-  f.setState(toStateOrDefault(req.state())); // ✅ πάντα entity.enums.FestivalState
+    f.setState(toStateOrDefault(req.state())); // Always use entity.enums.FestivalState
 
     f = repo.save(f);
     return ResponseEntity.created(URI.create("/api/festivals/" + f.getId())).body(f);
   }
   
-    //  pagination + proairetiko q
+    // List with pagination and optional search query
 
 @GetMapping
 public ResponseEntity<?> list(

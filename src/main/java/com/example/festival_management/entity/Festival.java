@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import com.example.festival_management.entity.enums.FestivalState;
 import jakarta.persistence.*;
-//KLASH ME TA PEDIA FESTIVAL
+// Entity mapping for Festival table with all properties
 @Entity
 @Table(name = "festivals")
 public class Festival {
@@ -25,7 +25,7 @@ public class Festival {
     @Column(nullable = false)
     private FestivalState state = FestivalState.CREATED;
 
-    // Ημερομηνίες
+    // Dates for the festival
     @Column
     private LocalDate createdAt;
 

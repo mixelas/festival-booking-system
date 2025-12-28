@@ -2,6 +2,7 @@ package com.example.festival_management.controller;
 
 import com.example.festival_management.entity.User;
 import com.example.festival_management.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class UserController {
 
     // POST /api/users/register
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
+    public ResponseEntity<User> register(@Valid @RequestBody User user) {
         User createdUser = userService.registerUser(user);
         return ResponseEntity.ok(createdUser);
     }
